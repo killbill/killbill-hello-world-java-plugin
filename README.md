@@ -8,4 +8,4 @@ Hello World Kill Bill plugin in Java. It shows how to:
 * Call Kill Bill APIs from the plugin
 * Register a custom HTTP servlet
 
-To build, run `mvn clean install`. You can then install the plugin (`target/killbill-osgi-bundles-hello-world-*.jar`) in `/var/tmp/bundles/plugins/java`.
+To build, run `mvn clean install`. You can then install the plugin (`target/killbill-osgi-bundles-hello-world-*.jar`) in `/var/tmp/bundles/platform`.
