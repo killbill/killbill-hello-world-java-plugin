@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package com.ning.billing.osgi.bundles.helloworld;
+package org.killbill.billing.plugin.helloworld;
 
 import java.util.Hashtable;
 
@@ -23,9 +23,9 @@ import javax.servlet.http.HttpServlet;
 
 import org.osgi.framework.BundleContext;
 
-import com.ning.billing.osgi.api.OSGIPluginProperties;
-import com.ning.killbill.osgi.libs.killbill.KillbillActivatorBase;
-import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
+import org.killbill.billing.osgi.api.OSGIPluginProperties;
+import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 
 public class HelloWorldActivator extends KillbillActivatorBase {
 

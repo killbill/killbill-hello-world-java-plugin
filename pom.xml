@@ -19,10 +19,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
-        <groupId>com.ning.billing</groupId>
-        <version>0.5.9</version>
+        <groupId>org.kill-bill.billing</groupId>
+        <version>0.5.29</version>
     </parent>
-    <artifactId>killbill-osgi-bundles-hello-world</artifactId>
+    <groupId>org.kill-bill.billing.plugin.java</groupId>
+    <artifactId>hello-world-plugin</artifactId>
     <name>Kill Bill OSGI Hello World bundle</name>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
@@ -39,21 +40,21 @@
     </issueManagement>
     <dependencies>
         <dependency>
-            <groupId>com.ning.billing</groupId>
+            <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing.plugin</groupId>
+            <groupId>org.kill-bill.billing.plugin</groupId>
             <artifactId>killbill-plugin-api-notification</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing</groupId>
+            <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-osgi-bundles-lib-killbill</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing</groupId>
+            <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-osgi-bundles-lib-slf4j-osgi</artifactId>
         </dependency>
         <dependency>
@@ -107,11 +108,11 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-Activator>com.ning.billing.osgi.bundles.helloworld.HelloWorldActivator</Bundle-Activator>
+                        <Bundle-Activator>org.killbill.billing.plugin.helloworld.HelloWorldActivator</Bundle-Activator>
                         <Export-Package />
-                        <Private-Package>com.ning.billing.osgi.bundles.helloworld.*</Private-Package>
+                        <Private-Package>org.killbill.billing.plugin.helloworld.*</Private-Package>
                         <!-- Optional resolution because exported by the Felix system bundle -->
-                        <Import-Package>*;com.ning.billing.osgi.api;resolution:=optional</Import-Package>
+                        <Import-Package>*;org.killbill.billing.osgi.api;resolution:=optional</Import-Package>
                     </instructions>
                 </configuration>
                 <executions>

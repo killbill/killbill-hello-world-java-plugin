@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package com.ning.billing.osgi.bundles.helloworld;
+package org.killbill.billing.plugin.helloworld;
 
 import java.io.IOException;
 

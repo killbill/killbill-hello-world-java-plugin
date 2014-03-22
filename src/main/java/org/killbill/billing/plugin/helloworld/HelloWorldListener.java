@@ -14,19 +14,19 @@
  * under the License.
  */
 
-package com.ning.billing.osgi.bundles.helloworld;
+package org.killbill.billing.plugin.helloworld;
 
 import java.util.UUID;
 
 import org.osgi.service.log.LogService;
 
-import com.ning.billing.account.api.Account;
-import com.ning.billing.account.api.AccountApiException;
-import com.ning.billing.notification.plugin.api.ExtBusEvent;
-import com.ning.billing.util.callcontext.TenantContext;
-import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
-import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
+import org.killbill.billing.account.api.Account;
+import org.killbill.billing.account.api.AccountApiException;
+import org.killbill.billing.notification.plugin.api.ExtBusEvent;
+import org.killbill.billing.util.callcontext.TenantContext;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class HelloWorldListener implements OSGIKillbillEventHandler {
 
