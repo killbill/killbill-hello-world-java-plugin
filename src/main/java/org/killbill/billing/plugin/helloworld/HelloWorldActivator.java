@@ -1,5 +1,6 @@
 /*
- * Copyright 2010-2013 Ning, Inc.
+ * Copyright 2010-2014 Ning, Inc.
+ * Copyright 2014 The Billing Project, LLC
  *
  * Ning licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -21,11 +22,10 @@ import java.util.Hashtable;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
-import org.osgi.framework.BundleContext;
-
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
+import org.osgi.framework.BundleContext;
 
 public class HelloWorldActivator extends KillbillActivatorBase {
 

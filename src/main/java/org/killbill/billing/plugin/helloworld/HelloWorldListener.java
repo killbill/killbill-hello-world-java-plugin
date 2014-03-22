@@ -1,5 +1,6 @@
 /*
- * Copyright 2010-2013 Ning, Inc.
+ * Copyright 2010-2014 Ning, Inc.
+ * Copyright 2014 The Billing Project, LLC
  *
  * Ning licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -18,8 +19,6 @@ package org.killbill.billing.plugin.helloworld;
 
 import java.util.UUID;
 
-import org.osgi.service.log.LogService;
-
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
@@ -27,6 +26,7 @@ import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
+import org.osgi.service.log.LogService;
 
 public class HelloWorldListener implements OSGIKillbillEventHandler {
 
