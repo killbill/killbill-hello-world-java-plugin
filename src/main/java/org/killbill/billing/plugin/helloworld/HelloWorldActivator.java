@@ -23,6 +23,7 @@ import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
+import org.killbill.billing.payment.plugin.api.PaymentPluginApi;
 import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.osgi.framework.BundleContext;
@@ -40,6 +41,10 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         // Register an event listener (optional)
         analyticsListener = new HelloWorldListener(logService, killbillAPI);
         dispatcher.registerEventHandler(analyticsListener);
+
+        // Register a payment plugin api (optional)
+        final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi(configProperties.getProperties(), logService);
+        registerPaymentPluginApi(context, paymentPluginApi);
 
         // Register a servlet (optional)
         final HelloWorldServlet analyticsServlet = new HelloWorldServlet(logService);
@@ -62,5 +67,11 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, Servlet.class, servlet, props);
+    }
+
+    private void registerPaymentPluginApi(final BundleContext context, final PaymentPluginApi api) {
+        final Hashtable<String, String> props = new Hashtable<String, String>();
+        props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        registrar.registerService(context, PaymentPluginApi.class, api, props);
     }
 }
