@@ -31,6 +31,9 @@ import org.osgi.framework.BundleContext;
 
 public class HelloWorldActivator extends KillbillActivatorBase {
 
+    //
+    // Ideally that string should match the pluginName on the filesystem, but there is no enforcement
+    //
     public static final String PLUGIN_NAME = "killbill-helloworld";
 
     private OSGIKillbillEventHandler killbillEventHandler;
