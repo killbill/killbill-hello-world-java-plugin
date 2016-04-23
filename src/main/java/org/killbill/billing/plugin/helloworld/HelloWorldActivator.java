@@ -33,15 +33,15 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
     public static final String PLUGIN_NAME = "killbill-helloworld";
 
-    private OSGIKillbillEventHandler analyticsListener;
+    private OSGIKillbillEventHandler killbillEventHandler;
 
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
 
         // Register an event listener (optional)
-        analyticsListener = new HelloWorldListener(logService, killbillAPI);
-        dispatcher.registerEventHandler(analyticsListener);
+        killbillEventHandler = new HelloWorldListener(logService, killbillAPI);
+        dispatcher.registerEventHandler(killbillEventHandler);
 
         // Register a payment plugin api (optional)
         final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi(configProperties.getProperties(), logService);
@@ -61,7 +61,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
     @Override
     public OSGIKillbillEventHandler getOSGIKillbillEventHandler() {
-        return analyticsListener;
+        return killbillEventHandler;
     }
 
     private void registerServlet(final BundleContext context, final HttpServlet servlet) {
