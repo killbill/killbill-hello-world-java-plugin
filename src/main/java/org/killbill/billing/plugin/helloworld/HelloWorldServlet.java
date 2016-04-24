@@ -36,7 +36,7 @@ public class HelloWorldServlet extends HttpServlet {
 
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        // Find me on http://127.0.0.1:8080/plugins/killbill-helloworld
+        // Find me on http://127.0.0.1:8080/plugins/hello-world-plugin
         logService.log(LogService.LOG_INFO, "Hello world");
     }
 }
