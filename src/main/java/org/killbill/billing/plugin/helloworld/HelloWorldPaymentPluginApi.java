@@ -36,6 +36,9 @@ import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.billing.util.entity.Pagination;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
+//
+// A 'real' payment plugin would of course implement this interface.
+//
 public class HelloWorldPaymentPluginApi implements PaymentPluginApi {
 
     private final Properties properties;

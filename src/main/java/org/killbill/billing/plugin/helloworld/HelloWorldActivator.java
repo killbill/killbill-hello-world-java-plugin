@@ -44,9 +44,9 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
         // Register an event listener (optional)
         killbillEventHandler = new HelloWorldListener(logService, killbillAPI);
-        dispatcher.registerEventHandler(killbillEventHandler);
+        registerEventHandlerWhenPluginStart(killbillEventHandler);
 
-        // Register a payment plugin api (optional)
+        // As an example, this plugin registers a PaymentPluginApi (this could be changed to any other plugin api)
         final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi(configProperties.getProperties(), logService);
         registerPaymentPluginApi(context, paymentPluginApi);
 
@@ -58,13 +58,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
     @Override
     public void stop(final BundleContext context) throws Exception {
         super.stop(context);
-
         // Do additional work on shutdown (optional)
-    }
-
-    @Override
-    public OSGIKillbillEventHandler getOSGIKillbillEventHandler() {
-        return killbillEventHandler;
     }
 
     private void registerServlet(final BundleContext context, final HttpServlet servlet) {

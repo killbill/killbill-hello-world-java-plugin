@@ -21,9 +21,9 @@ package org.killbill.billing.plugin.helloworld;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
+import org.killbill.billing.plugin.api.PluginTenantContext;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationHandler;
-import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
@@ -66,7 +66,7 @@ public class HelloWorldListener extends PluginConfigurationEventHandler implemen
             case ACCOUNT_CREATION:
             case ACCOUNT_CHANGE:
                 try {
-                    final Account account = osgiKillbillAPI.getAccountUserApi().getAccountById(killbillEvent.getAccountId(), new HelloWorldContext(killbillEvent.getTenantId()));
+                    final Account account = osgiKillbillAPI.getAccountUserApi().getAccountById(killbillEvent.getAccountId(), new PluginTenantContext(killbillEvent.getTenantId()));
                     logService.log(LogService.LOG_INFO, "Account information: " + account);
                 } catch (final AccountApiException e) {
                     logService.log(LogService.LOG_WARNING, "Unable to find account", e);
@@ -80,6 +80,20 @@ public class HelloWorldListener extends PluginConfigurationEventHandler implemen
         }
     }
 
+    //
+    // The goal is just to show-case that when per-tenant config changes are made, the plugin automatically gets notified (and prints a log trace)
+    //
+    // curl \
+    // -X POST \
+    // -u admin:password \
+    // -H "Accept: application/json" \
+    // -H "Content-Type: text/plain" \
+    // -H "X-Killbill-ApiKey: bob" \
+    // -H "X-Killbill-ApiSecret: lazar" \
+    // -H "Cache-Control: no-cache"  \
+    // -d 'key1=foo1 key2=foo2'
+    // "http://127.0.0.1:8080/1.0/kb/tenants/uploadPluginConfig/hello-world-plugin"
+    //
     private static class HelloWorldPluginConfigurationHandler extends PluginConfigurationHandler {
 
         private final LogService logService;
@@ -99,20 +113,6 @@ public class HelloWorldListener extends PluginConfigurationEventHandler implemen
 
             logService.log(LogService.LOG_INFO, String.format("Properties for tenant='%s': properties='%s'",
                     kbTenantId, properties.stringPropertyNames()));
-        }
-    }
-
-    private static final class HelloWorldContext implements TenantContext {
-
-        private final UUID tenantId;
-
-        private HelloWorldContext(final UUID tenantId) {
-            this.tenantId = tenantId;
-        }
-
-        @Override
-        public UUID getTenantId() {
-            return tenantId;
         }
     }
 }
