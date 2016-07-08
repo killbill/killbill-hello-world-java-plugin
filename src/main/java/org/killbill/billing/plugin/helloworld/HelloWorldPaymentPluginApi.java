@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import org.killbill.billing.catalog.api.Currency;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.payment.api.PaymentMethodPlugin;
 import org.killbill.billing.payment.api.PluginProperty;
 import org.killbill.billing.payment.plugin.api.GatewayNotification;
@@ -34,7 +35,6 @@ import org.killbill.billing.payment.plugin.api.PaymentTransactionInfoPlugin;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.billing.util.entity.Pagination;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 //
 // A 'real' payment plugin would of course implement this interface.

@@ -24,9 +24,9 @@ import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
+import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.payment.plugin.api.PaymentPluginApi;
-import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.osgi.framework.BundleContext;
 
 public class HelloWorldActivator extends KillbillActivatorBase {
@@ -36,7 +36,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
     //
     public static final String PLUGIN_NAME = "hello-world-plugin";
 
-    private OSGIKillbillEventHandler killbillEventHandler;
+    private OSGIKillbillEventDispatcher.OSGIKillbillEventHandler killbillEventHandler;
 
     @Override
     public void start(final BundleContext context) throws Exception {
@@ -44,7 +44,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
         // Register an event listener (optional)
         killbillEventHandler = new HelloWorldListener(logService, killbillAPI);
-        registerEventHandlerWhenPluginStart(killbillEventHandler);
+        dispatcher.registerEventHandlers(killbillEventHandler);
 
         // As an example, this plugin registers a PaymentPluginApi (this could be changed to any other plugin api)
         final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi(configProperties.getProperties(), logService);

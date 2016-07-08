@@ -21,19 +21,19 @@ package org.killbill.billing.plugin.helloworld;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.api.PluginTenantContext;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationHandler;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
 
 import javax.annotation.Nullable;
 import java.util.Properties;
 import java.util.UUID;
 
-public class HelloWorldListener extends PluginConfigurationEventHandler implements OSGIKillbillEventHandler {
+public class HelloWorldListener extends PluginConfigurationEventHandler implements OSGIKillbillEventDispatcher.OSGIKillbillEventHandler {
 
     private final LogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;
