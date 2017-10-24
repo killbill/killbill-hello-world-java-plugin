@@ -45,7 +45,7 @@ public class HelloWorldListener implements OSGIKillbillEventDispatcher.OSGIKillb
                     killbillEvent.getObjectId(),
                     killbillEvent.getObjectType());
 
-        final TenantContext context = new PluginTenantContext(killbillEvent.getTenantId());
+        final TenantContext context = new PluginTenantContext(killbillEvent.getAccountId(), killbillEvent.getTenantId());
         switch (killbillEvent.getEventType()) {
             //
             // Handle ACCOUNT_CREATION and ACCOUNT_CHANGE only for demo purpose and just print the account
