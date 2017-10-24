@@ -23,7 +23,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.140.2</version>
+        <version>0.140.41</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>hello-world-plugin</artifactId>
@@ -41,7 +41,46 @@
         <system>Github</system>
         <url>https://github.com/killbill/killbill-hello-world-java-plugin/issues</url>
     </issueManagement>
+    <properties>
+        <!-- More recent versions than the core (JDK1.8+) -->
+        <guava.version>21.0</guava.version>
+        <jackson.version>2.8.3</jackson.version>
+    </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-multibindings</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jooby</groupId>
+            <artifactId>jooby</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>logback-classic</artifactId>
+                    <groupId>ch.qos.logback</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-api</artifactId>
@@ -74,6 +113,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -136,7 +176,9 @@
                 <configuration>
                     <instructions>
                         <Bundle-Activator>org.killbill.billing.plugin.helloworld.HelloWorldActivator</Bundle-Activator>
-                        <Export-Package />
+                        <Export-Package>
+                            org.killbill.billing.plugin.service
+                        </Export-Package>
                         <Private-Package>org.killbill.billing.plugin.helloworld.*</Private-Package>
                         <!-- Optional resolution because exported by the Felix system bundle -->
                         <Import-Package>
@@ -284,7 +326,7 @@
                             version="[0,3)",
                             *;resolution:=optional
                         </Import-Package>
-                   </instructions>
+                    </instructions>
                 </configuration>
                 <executions>
                     <execution>
@@ -320,4 +362,45 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>jdk18</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <source>1.8</source>
+                            <target>1.8</target>
+                            <showDeprecation>true</showDeprecation>
+                            <showWarnings>true</showWarnings>
+                            <fork>true</fork>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>jar</goal>
+                                    <goal>test-jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>jdk18</classifier>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skipIfEmpty>true</skipIfEmpty>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2015 Groupon, Inc
- * Copyright 2014-2015 The Billing Project, LLC
+ * Copyright 2014-2017 Groupon, Inc
+ * Copyright 2014-2017 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -27,6 +27,9 @@ import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.payment.plugin.api.PaymentPluginApi;
+import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
+import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
+import org.killbill.billing.plugin.service.Healthcheck;
 import org.osgi.framework.BundleContext;
 
 public class HelloWorldActivator extends KillbillActivatorBase {
@@ -50,9 +53,22 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi(configProperties.getProperties(), logService);
         registerPaymentPluginApi(context, paymentPluginApi);
 
+        // Expose a healthcheck (optional), so other plugins can check on the plugin status
+        final Healthcheck healthcheck = new HelloWorldHealthcheck();
+        registerHealthcheck(context, healthcheck);
+
         // Register a servlet (optional)
-        final HelloWorldServlet analyticsServlet = new HelloWorldServlet(logService);
-        registerServlet(context, analyticsServlet);
+        final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME,
+                                                         killbillAPI,
+                                                         logService,
+                                                         dataSource,
+                                                         super.clock,
+                                                         configProperties).withRouteClass(HelloWorldServlet.class)
+                                                                          .withRouteClass(HelloWorldHealthcheckServlet.class)
+                                                                          .withService(healthcheck)
+                                                                          .build();
+        final HttpServlet httpServlet = PluginApp.createServlet(pluginApp);
+        registerServlet(context, httpServlet);
     }
 
     @Override
@@ -61,7 +77,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         // Do additional work on shutdown (optional)
     }
 
-    private void registerServlet(final BundleContext context, final HttpServlet servlet) {
+    private void registerServlet(final BundleContext context, final Servlet servlet) {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, Servlet.class, servlet, props);
@@ -71,5 +87,11 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, PaymentPluginApi.class, api, props);
+    }
+
+    private void registerHealthcheck(final BundleContext context, final Healthcheck healthcheck) {
+        final Hashtable<String, String> props = new Hashtable<String, String>();
+        props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        registrar.registerService(context, Healthcheck.class, healthcheck, props);
     }
 }

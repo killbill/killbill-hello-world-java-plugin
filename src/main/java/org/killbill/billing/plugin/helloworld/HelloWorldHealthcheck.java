@@ -1,5 +1,4 @@
 /*
- * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2017 Groupon, Inc
  * Copyright 2014-2017 The Billing Project, LLC
  *
@@ -18,25 +17,17 @@
 
 package org.killbill.billing.plugin.helloworld;
 
-import javax.inject.Singleton;
+import java.util.Map;
 
-import org.jooby.mvc.GET;
-import org.jooby.mvc.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.annotation.Nullable;
 
-@Singleton
-@Path("/")
-public class HelloWorldServlet {
+import org.killbill.billing.plugin.service.Healthcheck;
+import org.killbill.billing.tenant.api.Tenant;
 
-    private static final Logger logger = LoggerFactory.getLogger(HelloWorldServlet.class);
+public class HelloWorldHealthcheck implements Healthcheck {
 
-    public HelloWorldServlet() {
-    }
-
-    @GET
-    public void hello() {
-        // Find me on http://127.0.0.1:8080/plugins/hello-world-plugin
-        logger.info("Hello world");
+    @Override
+    public HealthStatus getHealthStatus(@Nullable final Tenant tenant, @Nullable final Map properties) {
+        return HealthStatus.healthy();
     }
 }
