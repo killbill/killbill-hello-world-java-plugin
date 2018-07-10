@@ -21,7 +21,7 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import org.killbill.billing.plugin.service.Healthcheck;
+import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.tenant.api.Tenant;
 
 public class HelloWorldHealthcheck implements Healthcheck {
