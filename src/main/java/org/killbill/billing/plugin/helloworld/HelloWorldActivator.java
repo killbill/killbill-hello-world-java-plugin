@@ -24,6 +24,7 @@ import java.util.Properties;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
@@ -33,7 +34,6 @@ import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHand
 import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
-import org.killbill.billing.plugin.service.Healthcheck;
 import org.osgi.framework.BundleContext;
 
 public class HelloWorldActivator extends KillbillActivatorBase {

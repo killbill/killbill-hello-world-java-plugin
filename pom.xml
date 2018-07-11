@@ -23,7 +23,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.140.41</version>
+        <version>0.141.97</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>hello-world-plugin</artifactId>
@@ -44,7 +44,7 @@
     <properties>
         <!-- More recent versions than the core (JDK1.8+) -->
         <guava.version>21.0</guava.version>
-        <jackson.version>2.8.3</jackson.version>
+        <jackson.version>2.9.5</jackson.version>
     </properties>
     <dependencies>
         <dependency>
