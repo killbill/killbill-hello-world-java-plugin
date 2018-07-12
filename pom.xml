@@ -27,7 +27,7 @@
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>hello-world-plugin</artifactId>
     <name>Kill Bill OSGI Hello World bundle</name>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>Kill Bill Hello World plugin</description>
     <url>http://github.com/killbill/killbill-hello-world-java-plugin</url>
