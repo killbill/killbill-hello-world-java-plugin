@@ -8,13 +8,23 @@ Hello World Kill Bill plugin in Java. It shows how to:
 * Call Kill Bill APIs from the plugin
 * Register a custom HTTP servlet
 
+Kill Bill compatibility
+-----------------------
+
+| Plugin version | Kill Bill version |
+| -------------: | ----------------: |
+| 1.0.y          | 0.20.z            |
+
+Getting Started
+---------------
+
 To build, run `mvn clean install`. You can then install the plugin (`target/hello-world-plugin-*.jar`) in `/var/tmp/bundles/plugins/java/hello/1.0`.
 
 You can use it as a template for your own plugins:
 
 ```bash
 curl https://codeload.github.com/killbill/killbill-hello-world-java-plugin/tar.gz/master | tar zxvf - --strip-components=1
-rm -rf .travis.yml LICENSE .idea/copyright
+rm -rf .circleci LICENSE .idea/copyright
 
 PACKAGE=acme
 PREFIX=Acme
