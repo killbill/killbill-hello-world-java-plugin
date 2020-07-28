@@ -1,5 +1,4 @@
-killbill-hello-world-java-plugin
-================================
+# killbill-hello-world-java-plugin
 
 Hello World Kill Bill plugin in Java. It shows how to:
 
@@ -8,15 +7,7 @@ Hello World Kill Bill plugin in Java. It shows how to:
 * Call Kill Bill APIs from the plugin
 * Register a custom HTTP servlet
 
-Kill Bill compatibility
------------------------
-
-| Plugin version | Kill Bill version |
-| -------------: | ----------------: |
-| 1.0.y          | 0.20.z            |
-
-Getting Started
----------------
+## Getting Started
 
 To build, run `mvn clean install`. You can then install the plugin (`target/hello-world-plugin-*.jar`) in `/var/tmp/bundles/plugins/java/hello/1.0`.
 
@@ -39,3 +30,7 @@ find .idea pom.xml src -type f -print0 | xargs -0 sed -i '' 's/hello-world-/'$PA
 ```
 
 Finally, modify the pom.xml with your own Git urls.
+
+## About
+
+Kill Bill is the leading Open-Source Subscription Billing & Payments Platform. For more information about the project, go to https://killbill.io/.
