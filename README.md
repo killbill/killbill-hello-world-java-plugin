@@ -11,8 +11,6 @@ Hello World Kill Bill plugin in Java. It shows how to:
 
 To build, run `mvn clean install`. You can then install the plugin locally:
 
-Locally:
-
 ```
 kpm install_java_plugin helloworld --from-source-file target/hello-world-plugin-*.jar --destination /var/tmp/bundles
 ```
