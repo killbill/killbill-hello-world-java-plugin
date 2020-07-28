@@ -9,9 +9,15 @@ Hello World Kill Bill plugin in Java. It shows how to:
 
 ## Getting Started
 
-To build, run `mvn clean install`. You can then install the plugin (`target/hello-world-plugin-*.jar`) in `/var/tmp/bundles/plugins/java/hello/1.0`.
+To build, run `mvn clean install`. You can then install the plugin locally:
 
-You can use it as a template for your own plugins:
+Locally:
+
+```
+kpm install_java_plugin helloworld --from-source-file target/hello-world-plugin-*.jar --destination /var/tmp/bundles
+```
+
+You can also use it as a template for your own plugins:
 
 ```bash
 curl https://codeload.github.com/killbill/killbill-hello-world-java-plugin/tar.gz/master | tar zxvf - --strip-components=1

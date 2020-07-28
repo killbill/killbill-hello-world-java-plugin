@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2017 Groupon, Inc
- * Copyright 2014-2017 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -53,7 +54,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
         // Register an event listener for plugin configuration (optional)
-        helloWorldConfigurationHandler = new HelloWorldConfigurationHandler(region, PLUGIN_NAME, killbillAPI, logService);
+        helloWorldConfigurationHandler = new HelloWorldConfigurationHandler(region, PLUGIN_NAME, killbillAPI);
         final Properties globalConfiguration = helloWorldConfigurationHandler.createConfigurable(configProperties.getProperties());
         helloWorldConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
@@ -61,7 +62,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         killbillEventHandler = new HelloWorldListener(killbillAPI);
 
         // As an example, this plugin registers a PaymentPluginApi (this could be changed to any other plugin api)
-        final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi(configProperties.getProperties(), logService);
+        final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi();
         registerPaymentPluginApi(context, paymentPluginApi);
 
         // Expose a healthcheck (optional), so other plugins can check on the plugin status
@@ -71,7 +72,6 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         // Register a servlet (optional)
         final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME,
                                                          killbillAPI,
-                                                         logService,
                                                          dataSource,
                                                          super.clock,
                                                          configProperties).withRouteClass(HelloWorldServlet.class)

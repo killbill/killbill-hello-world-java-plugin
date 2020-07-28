@@ -1,6 +1,8 @@
 /*
- * Copyright 2014-2015 Groupon, Inc
- * Copyright 2014-2015 The Billing Project, LLC
+ * Copyright 2010-2014 Ning, Inc.
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,11 +21,9 @@ package org.killbill.billing.plugin.helloworld;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
 import org.killbill.billing.catalog.api.Currency;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.payment.api.PaymentMethodPlugin;
 import org.killbill.billing.payment.api.PluginProperty;
 import org.killbill.billing.payment.plugin.api.GatewayNotification;
@@ -40,14 +40,6 @@ import org.killbill.billing.util.entity.Pagination;
 // A 'real' payment plugin would of course implement this interface.
 //
 public class HelloWorldPaymentPluginApi implements PaymentPluginApi {
-
-    private final Properties properties;
-    private final OSGIKillbillLogService logService;
-
-    public HelloWorldPaymentPluginApi(final Properties properties, final OSGIKillbillLogService logService) {
-        this.properties = properties;
-        this.logService = logService;
-    }
 
     @Override
     public PaymentTransactionInfoPlugin authorizePayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
