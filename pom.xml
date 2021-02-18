@@ -41,6 +41,13 @@
         <url>https://github.com/killbill/killbill-hello-world-java-plugin/issues</url>
     </issueManagement>
     <properties>
+        <check.skip-dependency>true</check.skip-dependency>
+        <check.skip-dependency-scope>true</check.skip-dependency-scope>
+        <check.skip-dependency-versions>true</check.skip-dependency-versions>
+        <check.skip-duplicate-finder>true</check.skip-duplicate-finder>
+        <check.skip-enforcer>true</check.skip-enforcer>
+        <check.skip-rat>true</check.skip-rat>
+        <check.skip-spotbugs>true</check.skip-spotbugs>
         <osgi.private>org.killbill.billing.plugin.helloworld.*</osgi.private>
     </properties>
     <dependencies>
@@ -113,6 +120,10 @@
             <artifactId>killbill-base-plugin</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-clock</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
