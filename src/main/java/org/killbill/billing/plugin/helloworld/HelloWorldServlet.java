@@ -19,10 +19,12 @@
 
 package org.killbill.billing.plugin.helloworld;
 
+import javax.annotation.Nullable;
 import javax.inject.Singleton;
 
 import org.jooby.mvc.GET;
 import org.jooby.mvc.Path;
+import org.killbill.billing.tenant.api.Tenant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +38,14 @@ public class HelloWorldServlet {
     }
 
     @GET
-    public void hello() {
+    public void hello(@Nullable final Tenant tenant) {
         // Find me on http://127.0.0.1:8080/plugins/hello-world-plugin
         logger.info("Hello world");
+        if(tenant != null) {
+        	logger.info("tenant is available");
+        }
+        else {
+        	logger.info("tenant is not available");
+        }
     }
 }
