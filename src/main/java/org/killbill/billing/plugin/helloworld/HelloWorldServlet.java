@@ -40,6 +40,10 @@ public class HelloWorldServlet {
     public HelloWorldServlet() {
     }
 
+    /**
+     * Kill Bill automatically injects Tenant object in this method when this end point is accessed with the X-Killbill-ApiKey and X-Killbill-ApiSecret headers 
+     * @param tenant
+     */
     @GET
     public void hello(@Local @Named("killbill_tenant") final Optional<Tenant> tenant) {
         // Find me on http://127.0.0.1:8080/plugins/hello-world-plugin
