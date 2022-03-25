@@ -30,7 +30,6 @@ import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler;
-import org.killbill.billing.osgi.libs.killbill.OSGIServiceNotAvailable;
 import org.killbill.billing.payment.plugin.api.PaymentPluginApi;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
 import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
@@ -47,7 +46,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
     private HelloWorldConfigurationHandler helloWorldConfigurationHandler;
     private OSGIKillbillEventDispatcher.OSGIKillbillEventHandler killbillEventHandler;
-    private boolean stopMetrics;
+    private MetricsGeneratorExample metricsGenerator;
 
     @Override
     public void start(final BundleContext context) throws Exception {
@@ -68,23 +67,8 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         registerPaymentPluginApi(context, paymentPluginApi);
 
         // Expose metrics (optional)
-        new Thread(new Runnable() {
-            public void run() {
-                while (!stopMetrics) {
-                    try {
-                        Thread.sleep(1000L);
-                    } catch (final InterruptedException ignored) {
-                        break;
-                    }
-
-                    try {
-                        metricRegistry.getMetricRegistry().counter("hello_counter").inc(1);
-                    } catch (final OSGIServiceNotAvailable ignored) {
-                        // No MetricRegistry available
-                    }
-                }
-            }
-        }).start();
+        metricsGenerator = new MetricsGeneratorExample(metricRegistry);
+        metricsGenerator.start();
 
         // Expose a healthcheck (optional), so other plugins can check on the plugin status
         final Healthcheck healthcheck = new HelloWorldHealthcheck();
@@ -108,7 +92,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
     @Override
     public void stop(final BundleContext context) throws Exception {
         // Do additional work on shutdown (optional)
-        stopMetrics = true;
+        metricsGenerator.stop();
         super.stop(context);
     }
 
