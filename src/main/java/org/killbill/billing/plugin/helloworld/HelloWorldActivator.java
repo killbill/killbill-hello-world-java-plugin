@@ -70,7 +70,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final Healthcheck healthcheck = new HelloWorldHealthcheck();
         registerHealthcheck(context, healthcheck);
         
-        final InvoicePluginApi invoicePluginApi = new HelloWorldInvoicePlugn(killbillAPI, configProperties, null);
+        final InvoicePluginApi invoicePluginApi = new HelloWorldInvoicePluginApi(killbillAPI, configProperties, null);
         registerInvoicePluginApi(context, invoicePluginApi);
 
         // Register a servlet (optional)
