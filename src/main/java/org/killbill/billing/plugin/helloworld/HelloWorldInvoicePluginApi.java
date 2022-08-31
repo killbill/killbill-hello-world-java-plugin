@@ -42,110 +42,109 @@ import com.google.common.collect.ImmutableSet;
 
 class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIKillbillEventHandler {
 
-	public HelloWorldInvoicePluginApi(OSGIKillbillAPI killbillAPI, OSGIConfigPropertiesService configProperties,
-			Clock clock) {
-		super(killbillAPI, configProperties, clock);
-	}
+    public HelloWorldInvoicePluginApi(OSGIKillbillAPI killbillAPI, OSGIConfigPropertiesService configProperties,
+                                      Clock clock) {
+        super(killbillAPI, configProperties, clock);
+    }
 
-	/**
-	 * Returns additional invoice items to be added to invoice
-	 * <p>
-	 * This method produces two types of invoice items a. Tax Item on Invoice Item
-	 * b. Adjustment Item on only the very first Historical Invoice Tax Item
-	 * automatically ( just for Demo purpose )
-	 *
-	 * @param newInvoice The invoice that is being created.
-	 * @param dryRun     Whether it is dryRun or not
-	 * @param properties Any user-specified plugin properties, coming straight out
-	 *                   of the API request that has triggered this code to run.
-	 * @param callCtx    The context in which this code is running.
-	 * @return A new immutable list of new tax items, or adjustments on existing tax
-	 *         items.
-	 */
-	@Override
-	public List<InvoiceItem> getAdditionalInvoiceItems(final Invoice newInvoice, final boolean dryRun,
-			final Iterable<PluginProperty> properties, final CallContext callContext) {
+    /**
+     * Returns additional invoice items to be added to invoice
+     * <p>
+     * This method produces two types of invoice items a. Tax Item on Invoice Item
+     * b. Adjustment Item on only the very first Historical Invoice Tax Item
+     * automatically ( just for Demo purpose )
+     *
+     * @param newInvoice The invoice that is being created.
+     * @param dryRun     Whether it is dryRun or not
+     * @param properties Any user-specified plugin properties, coming straight out
+     *                   of the API request that has triggered this code to run.
+     * @param callCtx    The context in which this code is running.
+     * @return A new immutable list of new tax items, or adjustments on existing tax
+     * items.
+     */
+    @Override
+    public List<InvoiceItem> getAdditionalInvoiceItems(final Invoice newInvoice, final boolean dryRun,
+                                                       final Iterable<PluginProperty> properties, final CallContext callContext) {
 
-		UUID accountId = newInvoice.getAccountId();
-		Account account = getAccount(accountId, callContext);
-		Set<Invoice> allInvoices = getAllInvoicesOfAccount(account, newInvoice, callContext);
-		ImmutableList.Builder<InvoiceItem> additionalItems = ImmutableList.builder();
+        UUID accountId = newInvoice.getAccountId();
+        Account account = getAccount(accountId, callContext);
+        Set<Invoice> allInvoices = getAllInvoicesOfAccount(account, newInvoice, callContext);
+        ImmutableList.Builder<InvoiceItem> additionalItems = ImmutableList.builder();
 
-		// Creating tax item for first Item of new Invoice
-		List<InvoiceItem> newInvoiceItems = newInvoice.getInvoiceItems();
-		InvoiceItem newInvoiceItem = newInvoiceItems.get(0);
-		BigDecimal charge = new BigDecimal("80");
-		InvoiceItem taxItem = PluginInvoiceItem.createTaxItem(newInvoiceItem, newInvoiceItem.getInvoiceId(),
-				newInvoice.getInvoiceDate(), null, charge, "Tax Item");
-		additionalItems.add(taxItem);
+        // Creating tax item for first Item of new Invoice
+        List<InvoiceItem> newInvoiceItems = newInvoice.getInvoiceItems();
+        InvoiceItem newInvoiceItem = newInvoiceItems.get(0);
+        BigDecimal charge = new BigDecimal("80");
+        InvoiceItem taxItem = PluginInvoiceItem.createTaxItem(newInvoiceItem, newInvoiceItem.getInvoiceId(),
+                                                              newInvoice.getInvoiceDate(), null, charge, "Tax Item");
+        additionalItems.add(taxItem);
 
-		// Creating External Charge for first Item of new Invoice
-		InvoiceItem externalItem = PluginInvoiceItem.create(newInvoiceItem, newInvoiceItem.getInvoiceId(),
-				newInvoice.getInvoiceDate(), null, charge, "External Item", InvoiceItemType.EXTERNAL_CHARGE);
-		additionalItems.add(externalItem);
+        // Creating External Charge for first Item of new Invoice
+        InvoiceItem externalItem = PluginInvoiceItem.create(newInvoiceItem, newInvoiceItem.getInvoiceId(),
+                                                            newInvoice.getInvoiceDate(), null, charge, "External Item", InvoiceItemType.EXTERNAL_CHARGE);
+        additionalItems.add(externalItem);
 
-		// Creating adjustment item for first Item of Historical Invoice
-		for (Invoice invoice : allInvoices) {
-			if (!invoice.getId().equals(newInvoice.getId())) {
-				List<InvoiceItem> invoiceItems = invoice.getInvoiceItems();
-				// Check for if any adjustment item exists for Historical Invoice
-				if (checkforAdjustmentItem(invoiceItems)) {
-					break;
-				}
-				for (InvoiceItem item : invoiceItems) {
-					if (isTaxItem(item)) {
-						charge = new BigDecimal("-40");
-						InvoiceItem adjItem = PluginInvoiceItem.createAdjustmentItem(item, item.getInvoiceId(),
-								newInvoice.getInvoiceDate(), newInvoice.getInvoiceDate(), charge, "Adjustment Item");
-						additionalItems.add(adjItem);
-						break;
-					}
-				}
-				break;
-			}
-		}
+        // Creating adjustment item for first Item of Historical Invoice
+        for (Invoice invoice : allInvoices) {
+            if (!invoice.getId().equals(newInvoice.getId())) {
+                List<InvoiceItem> invoiceItems = invoice.getInvoiceItems();
+                // Check for if any adjustment item exists for Historical Invoice
+                if (checkforAdjustmentItem(invoiceItems)) {
+                    break;
+                }
+                for (InvoiceItem item : invoiceItems) {
+                    charge = new BigDecimal("-30");
+                    InvoiceItem adjItem = PluginInvoiceItem.createAdjustmentItem(item, item.getInvoiceId(),
+                                                                                 newInvoice.getInvoiceDate(), newInvoice.getInvoiceDate(), charge, "Adjustment Item");
+                    additionalItems.add(adjItem);
+                    break;
+                }
+                break;
+            }
+        }
 
-		return additionalItems.build();
-	}
+        return additionalItems.build();
+    }
 
-	/**
-	 * This method returns all invoices of account
-	 *
-	 * @param account    The account to consider.
-	 * @param newInvoice New Invoice Item to be added to existing invoices of the
-	 *                   account
-	 * @param tenantCtx
-	 * @return All invoices of account
-	 */
-	private Set<Invoice> getAllInvoicesOfAccount(Account account, Invoice newInvoice, TenantContext tenantCtx) {
-		ImmutableSet.Builder<Invoice> builder = ImmutableSet.builder();
-		builder.addAll(getInvoicesByAccountId(account.getId(), tenantCtx));
-		builder.add(newInvoice);
-		return builder.build();
-	}
+    /**
+     * This method returns all invoices of account
+     *
+     * @param account    The account to consider.
+     * @param newInvoice New Invoice Item to be added to existing invoices of the
+     *                   account
+     * @param tenantCtx
+     * @return All invoices of account
+     */
+    private Set<Invoice> getAllInvoicesOfAccount(Account account, Invoice newInvoice, TenantContext tenantCtx) {
+        ImmutableSet.Builder<Invoice> builder = ImmutableSet.builder();
+        builder.addAll(getInvoicesByAccountId(account.getId(), tenantCtx));
+        builder.add(newInvoice);
+        return builder.build();
+    }
 
-	/**
-	 * Check whether adjustment item is already present in invoice Item of Invoice
-	 *
-	 * @param invoiceItems
-	 * @return
-	 */
-	private boolean checkforAdjustmentItem(List<InvoiceItem> invoiceItems) {
-		boolean adjustmentItemPresent = false;
-		for (InvoiceItem invoiceItem : invoiceItems) {
-			if (invoiceItem.getInvoiceItemType().equals(InvoiceItemType.ITEM_ADJ)) {
-				adjustmentItemPresent = true;
-			}
-		}
-		return adjustmentItemPresent;
-	}
+    /**
+     * Check whether adjustment item is already present in invoice Item of Invoice
+     *
+     * @param invoiceItems
+     * @return
+     */
+    private boolean checkforAdjustmentItem(List<InvoiceItem> invoiceItems) {
+        boolean adjustmentItemPresent = false;
+        for (InvoiceItem invoiceItem : invoiceItems) {
+            if (invoiceItem.getInvoiceItemType().equals(InvoiceItemType.ITEM_ADJ)) {
+                adjustmentItemPresent = true;
+                break;
+            }
+        }
+        return adjustmentItemPresent;
+    }
 
-	protected boolean isTaxItem(final InvoiceItem invoiceItem) {
-		return InvoiceItemType.TAX.equals(invoiceItem.getInvoiceItemType());
-	}
+    protected boolean isTaxItem(final InvoiceItem invoiceItem) {
+        return InvoiceItemType.TAX.equals(invoiceItem.getInvoiceItemType());
+    }
 
-	@Override
-	public void handleKillbillEvent(ExtBusEvent killbillEvent) {
-	}
+    @Override
+    public void handleKillbillEvent(ExtBusEvent killbillEvent) {
+    }
 
 }
