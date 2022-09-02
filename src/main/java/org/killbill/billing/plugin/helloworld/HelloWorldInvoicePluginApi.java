@@ -42,8 +42,8 @@ import com.google.common.collect.ImmutableSet;
 
 class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIKillbillEventHandler {
 
-    public HelloWorldInvoicePluginApi(OSGIKillbillAPI killbillAPI, OSGIConfigPropertiesService configProperties,
-                                      Clock clock) {
+    public HelloWorldInvoicePluginApi(final OSGIKillbillAPI killbillAPI, final OSGIConfigPropertiesService configProperties,
+                                      final Clock clock) {
         super(killbillAPI, configProperties, clock);
     }
 
@@ -66,36 +66,36 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
     public List<InvoiceItem> getAdditionalInvoiceItems(final Invoice newInvoice, final boolean dryRun,
                                                        final Iterable<PluginProperty> properties, final CallContext callContext) {
 
-        UUID accountId = newInvoice.getAccountId();
-        Account account = getAccount(accountId, callContext);
-        Set<Invoice> allInvoices = getAllInvoicesOfAccount(account, newInvoice, callContext);
-        ImmutableList.Builder<InvoiceItem> additionalItems = ImmutableList.builder();
+        final UUID accountId = newInvoice.getAccountId();
+        final Account account = getAccount(accountId, callContext);
+        final Set<Invoice> allInvoices = getAllInvoicesOfAccount(account, newInvoice, callContext);
+        final ImmutableList.Builder<InvoiceItem> additionalItems = ImmutableList.builder();
 
         // Creating tax item for first Item of new Invoice
-        List<InvoiceItem> newInvoiceItems = newInvoice.getInvoiceItems();
-        InvoiceItem newInvoiceItem = newInvoiceItems.get(0);
+        final List<InvoiceItem> newInvoiceItems = newInvoice.getInvoiceItems();
+        final InvoiceItem newInvoiceItem = newInvoiceItems.get(0);
         BigDecimal charge = new BigDecimal("80");
-        InvoiceItem taxItem = PluginInvoiceItem.createTaxItem(newInvoiceItem, newInvoiceItem.getInvoiceId(),
-                                                              newInvoice.getInvoiceDate(), null, charge, "Tax Item");
+        final InvoiceItem taxItem = PluginInvoiceItem.createTaxItem(newInvoiceItem, newInvoiceItem.getInvoiceId(),
+                                                                    newInvoice.getInvoiceDate(), null, charge, "Tax Item");
         additionalItems.add(taxItem);
 
         // Creating External Charge for first Item of new Invoice
-        InvoiceItem externalItem = PluginInvoiceItem.create(newInvoiceItem, newInvoiceItem.getInvoiceId(),
-                                                            newInvoice.getInvoiceDate(), null, charge, "External Item", InvoiceItemType.EXTERNAL_CHARGE);
+        final InvoiceItem externalItem = PluginInvoiceItem.create(newInvoiceItem, newInvoiceItem.getInvoiceId(),
+                                                                  newInvoice.getInvoiceDate(), null, charge, "External Item", InvoiceItemType.EXTERNAL_CHARGE);
         additionalItems.add(externalItem);
 
         // Creating adjustment item for first Item of Historical Invoice
-        for (Invoice invoice : allInvoices) {
+        for (final Invoice invoice : allInvoices) {
             if (!invoice.getId().equals(newInvoice.getId())) {
-                List<InvoiceItem> invoiceItems = invoice.getInvoiceItems();
+                final List<InvoiceItem> invoiceItems = invoice.getInvoiceItems();
                 // Check for if any adjustment item exists for Historical Invoice
                 if (checkforAdjustmentItem(invoiceItems)) {
                     break;
                 }
-                for (InvoiceItem item : invoiceItems) {
+                for (final InvoiceItem item : invoiceItems) {
                     charge = new BigDecimal("-30");
-                    InvoiceItem adjItem = PluginInvoiceItem.createAdjustmentItem(item, item.getInvoiceId(),
-                                                                                 newInvoice.getInvoiceDate(), newInvoice.getInvoiceDate(), charge, "Adjustment Item");
+                    final InvoiceItem adjItem = PluginInvoiceItem.createAdjustmentItem(item, item.getInvoiceId(),
+                                                                                       newInvoice.getInvoiceDate(), newInvoice.getInvoiceDate(), charge, "Adjustment Item");
                     additionalItems.add(adjItem);
                     break;
                 }
@@ -115,8 +115,8 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
      * @param tenantCtx
      * @return All invoices of account
      */
-    private Set<Invoice> getAllInvoicesOfAccount(Account account, Invoice newInvoice, TenantContext tenantCtx) {
-        ImmutableSet.Builder<Invoice> builder = ImmutableSet.builder();
+    private Set<Invoice> getAllInvoicesOfAccount(final Account account, final Invoice newInvoice, final TenantContext tenantCtx) {
+        final ImmutableSet.Builder<Invoice> builder = ImmutableSet.builder();
         builder.addAll(getInvoicesByAccountId(account.getId(), tenantCtx));
         builder.add(newInvoice);
         return builder.build();
@@ -128,9 +128,9 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
      * @param invoiceItems
      * @return
      */
-    private boolean checkforAdjustmentItem(List<InvoiceItem> invoiceItems) {
+    private boolean checkforAdjustmentItem(final List<InvoiceItem> invoiceItems) {
         boolean adjustmentItemPresent = false;
-        for (InvoiceItem invoiceItem : invoiceItems) {
+        for (final InvoiceItem invoiceItem : invoiceItems) {
             if (invoiceItem.getInvoiceItemType().equals(InvoiceItemType.ITEM_ADJ)) {
                 adjustmentItemPresent = true;
                 break;
@@ -144,7 +144,7 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
     }
 
     @Override
-    public void handleKillbillEvent(ExtBusEvent killbillEvent) {
+    public void handleKillbillEvent(final ExtBusEvent killbillEvent) {
     }
 
 }
