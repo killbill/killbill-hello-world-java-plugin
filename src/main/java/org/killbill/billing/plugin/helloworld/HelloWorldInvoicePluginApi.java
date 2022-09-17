@@ -84,7 +84,7 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
                                                                   newInvoice.getInvoiceDate(), null, charge, "External Item", InvoiceItemType.EXTERNAL_CHARGE);
         additionalItems.add(externalItem);
 
-        // Creating adjustment item for first Item of Historical Invoice
+        // Adding adjustment invoice item to the first historical invoice, if it does not have the adjustment item
         for (final Invoice invoice : allInvoices) {
             if (!invoice.getId().equals(newInvoice.getId())) {
                 final List<InvoiceItem> invoiceItems = invoice.getInvoiceItems();
