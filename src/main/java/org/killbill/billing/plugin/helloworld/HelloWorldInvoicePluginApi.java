@@ -18,6 +18,8 @@
 package org.killbill.billing.plugin.helloworld;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +28,8 @@ import org.killbill.billing.account.api.Account;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
+import org.killbill.billing.invoice.plugin.api.AdditionalItemsResult;
+import org.killbill.billing.invoice.plugin.api.InvoiceContext;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
@@ -33,12 +37,8 @@ import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIK
 import org.killbill.billing.payment.api.PluginProperty;
 import org.killbill.billing.plugin.api.invoice.PluginInvoiceItem;
 import org.killbill.billing.plugin.api.invoice.PluginInvoicePluginApi;
-import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.clock.Clock;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIKillbillEventHandler {
 
@@ -63,13 +63,13 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
      * items.
      */
     @Override
-    public List<InvoiceItem> getAdditionalInvoiceItems(final Invoice newInvoice, final boolean dryRun,
-                                                       final Iterable<PluginProperty> properties, final CallContext callContext) {
+    public AdditionalItemsResult getAdditionalInvoiceItems(final Invoice newInvoice, final boolean dryRun,
+                                                       final Iterable<PluginProperty> properties, final InvoiceContext invoiceContext) {
 
         final UUID accountId = newInvoice.getAccountId();
-        final Account account = getAccount(accountId, callContext);
-        final Set<Invoice> allInvoices = getAllInvoicesOfAccount(account, newInvoice, callContext);
-        final ImmutableList.Builder<InvoiceItem> additionalItems = ImmutableList.builder();
+        final Account account = getAccount(accountId, invoiceContext);
+        final Set<Invoice> allInvoices = getAllInvoicesOfAccount(account, newInvoice, invoiceContext);
+        final List<InvoiceItem> additionalItems = new LinkedList<InvoiceItem>();
 
         // Creating tax item for first Item of new Invoice
         final List<InvoiceItem> newInvoiceItems = newInvoice.getInvoiceItems();
@@ -102,8 +102,18 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
                 break;
             }
         }
+        
+        return new AdditionalItemsResult() {
+            @Override
+            public List<InvoiceItem> getAdditionalItems() {
+                return additionalItems;
+            }
 
-        return additionalItems.build();
+            @Override
+            public Iterable<PluginProperty> getAdjustedPluginProperties() {
+                return null;
+            }
+        };        
     }
 
     /**
@@ -116,10 +126,10 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
      * @return All invoices of account
      */
     private Set<Invoice> getAllInvoicesOfAccount(final Account account, final Invoice newInvoice, final TenantContext tenantCtx) {
-        final ImmutableSet.Builder<Invoice> builder = ImmutableSet.builder();
-        builder.addAll(getInvoicesByAccountId(account.getId(), tenantCtx));
-        builder.add(newInvoice);
-        return builder.build();
+        final Set<Invoice> invoices = new HashSet<Invoice>();
+        invoices.addAll(getInvoicesByAccountId(account.getId(), tenantCtx));
+        invoices.add(newInvoice);
+        return invoices;
     }
 
     /**
