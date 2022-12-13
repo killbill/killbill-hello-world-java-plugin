@@ -48,6 +48,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
     private HelloWorldConfigurationHandler helloWorldConfigurationHandler;
     private OSGIKillbillEventDispatcher.OSGIKillbillEventHandler killbillEventHandler;
+    private MetricsGeneratorExample metricsGenerator;
 
     @Override
     public void start(final BundleContext context) throws Exception {
@@ -69,8 +70,11 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi();
         registerPaymentPluginApi(context, paymentPluginApi);
 
-        // Expose a healthcheck (optional), so other plugins can check on the plugin
-        // status
+        // Expose metrics (optional)
+        metricsGenerator = new MetricsGeneratorExample(metricRegistry);
+        metricsGenerator.start();
+
+        // Expose a healthcheck (optional), so other plugins can check on the plugin status
         final Healthcheck healthcheck = new HelloWorldHealthcheck();
         registerHealthcheck(context, healthcheck);
 
@@ -90,8 +94,9 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
     @Override
     public void stop(final BundleContext context) throws Exception {
-        super.stop(context);
         // Do additional work on shutdown (optional)
+        metricsGenerator.stop();
+        super.stop(context);
     }
 
     private void registerHandlers() {
