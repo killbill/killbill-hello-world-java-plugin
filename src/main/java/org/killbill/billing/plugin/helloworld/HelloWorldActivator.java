@@ -25,6 +25,7 @@ import java.util.Properties;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.killbill.billing.invoice.plugin.api.InvoicePluginApi;
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
@@ -40,7 +41,8 @@ import org.osgi.framework.BundleContext;
 public class HelloWorldActivator extends KillbillActivatorBase {
 
     //
-    // Ideally that string should match the pluginName on the filesystem, but there is no enforcement
+    // Ideally that string should match the pluginName on the filesystem, but there
+    // is no enforcement
     //
     public static final String PLUGIN_NAME = "hello-world-plugin";
 
@@ -56,13 +58,15 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
         // Register an event listener for plugin configuration (optional)
         helloWorldConfigurationHandler = new HelloWorldConfigurationHandler(region, PLUGIN_NAME, killbillAPI);
-        final Properties globalConfiguration = helloWorldConfigurationHandler.createConfigurable(configProperties.getProperties());
+        final Properties globalConfiguration = helloWorldConfigurationHandler
+                .createConfigurable(configProperties.getProperties());
         helloWorldConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
         // Register an event listener (optional)
         killbillEventHandler = new HelloWorldListener(killbillAPI);
 
-        // As an example, this plugin registers a PaymentPluginApi (this could be changed to any other plugin api)
+        // As an example, this plugin registers a PaymentPluginApi (this could be
+        // changed to any other plugin api)
         final PaymentPluginApi paymentPluginApi = new HelloWorldPaymentPluginApi();
         registerPaymentPluginApi(context, paymentPluginApi);
 
@@ -74,15 +78,14 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final Healthcheck healthcheck = new HelloWorldHealthcheck();
         registerHealthcheck(context, healthcheck);
 
+        // This Plugin registers a InvoicePluginApi
+        final InvoicePluginApi invoicePluginApi = new HelloWorldInvoicePluginApi(killbillAPI, configProperties, null);
+        registerInvoicePluginApi(context, invoicePluginApi);
+
         // Register a servlet (optional)
-        final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME,
-                                                         killbillAPI,
-                                                         dataSource,
-                                                         super.clock,
+        final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME, killbillAPI, dataSource, super.clock,
                                                          configProperties).withRouteClass(HelloWorldServlet.class)
-                                                                          .withRouteClass(HelloWorldHealthcheckServlet.class)
-                                                                          .withService(healthcheck)
-                                                                          .build();
+                                                                          .withRouteClass(HelloWorldHealthcheckServlet.class).withService(healthcheck).build();
         final HttpServlet httpServlet = PluginApp.createServlet(pluginApp);
         registerServlet(context, httpServlet);
 
@@ -97,7 +100,8 @@ public class HelloWorldActivator extends KillbillActivatorBase {
     }
 
     private void registerHandlers() {
-        final PluginConfigurationEventHandler configHandler = new PluginConfigurationEventHandler(helloWorldConfigurationHandler);
+        final PluginConfigurationEventHandler configHandler = new PluginConfigurationEventHandler(
+                helloWorldConfigurationHandler);
 
         dispatcher.registerEventHandlers(configHandler,
                                          (OSGIFrameworkEventHandler) () -> dispatcher.registerEventHandlers(killbillEventHandler));
@@ -113,6 +117,12 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, PaymentPluginApi.class, api, props);
+    }
+
+    private void registerInvoicePluginApi(final BundleContext context, final InvoicePluginApi api) {
+        final Hashtable<String, String> props = new Hashtable<String, String>();
+        props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        registrar.registerService(context, InvoicePluginApi.class, api, props);
     }
 
     private void registerHealthcheck(final BundleContext context, final Healthcheck healthcheck) {
