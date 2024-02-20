@@ -85,7 +85,9 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         // Register a servlet (optional)
         final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME, killbillAPI, dataSource, super.clock,
                                                          configProperties).withRouteClass(HelloWorldServlet.class)
-                                                                          .withRouteClass(HelloWorldHealthcheckServlet.class).withService(healthcheck).build();
+                                                                          .withRouteClass(HelloWorldHealthcheckServlet.class)
+                                                                          .withRouteClass(HelloWorldTestUrlEncodedFormServlet.class)
+                                                                          .withService(healthcheck).build();
         final HttpServlet httpServlet = PluginApp.createServlet(pluginApp);
         registerServlet(context, httpServlet);
 
