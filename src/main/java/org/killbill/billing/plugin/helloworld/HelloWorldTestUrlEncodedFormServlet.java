@@ -29,7 +29,7 @@ public class HelloWorldTestUrlEncodedFormServlet {
 
     @POST
     @Path("/testUrlEncodedForm")
-    public Object testUrlEncodedForm(@Body Object payload) {
+    public Object testUrlEncodedForm(@Body String payload) {
         return payload;
     }
 }
