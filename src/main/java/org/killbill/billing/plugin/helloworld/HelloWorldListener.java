@@ -21,6 +21,7 @@ package org.killbill.billing.plugin.helloworld;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 
 import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
@@ -47,9 +48,12 @@ public class HelloWorldListener implements OSGIKillbillEventDispatcher.OSGIKillb
 
     private final ServiceTracker<InvoiceFormatterFactory, InvoiceFormatterFactory> invoiceFormatterTracker;
 
-    public HelloWorldListener(final OSGIKillbillAPI killbillAPI, final ServiceTracker<InvoiceFormatterFactory, InvoiceFormatterFactory> invoiceFormatterTracker) {
+    private final Properties configProperties;
+
+    public HelloWorldListener(final OSGIKillbillAPI killbillAPI, final ServiceTracker<InvoiceFormatterFactory, InvoiceFormatterFactory> invoiceFormatterTracker, Properties configProperties) {
         this.osgiKillbillAPI = killbillAPI;
         this.invoiceFormatterTracker = invoiceFormatterTracker;
+        this.configProperties = configProperties;
     }
 
     private static final String defaultLocale = "en_US";
@@ -85,6 +89,13 @@ public class HelloWorldListener implements OSGIKillbillEventDispatcher.OSGIKillb
                 }
                 final List<Invoice> invoices = osgiKillbillAPI.getInvoiceUserApi().getInvoicesByAccount(killbillEvent.getAccountId(), false, false, true, context);
                 logger.info("Invoices in hello-world-plugin {}: ",invoices.size());
+
+                final String invoiceFormatterPluginName = configProperties.getProperty("org.killbill.template.invoiceFormatterFactoryPluginName");
+                if(invoiceFormatterPluginName == null || invoiceFormatterPluginName.isEmpty()){
+                    logger.info("Invoice formatter plugin not configured. set the org.killbill.template.invoiceFormatterFactoryPluginName property to configure it");
+                    return;
+                }
+
                 final InvoiceFormatterFactory formatterFactory = (invoiceFormatterTracker != null ? invoiceFormatterTracker.getService() : null);
                 Invoice invoice = invoices.get(0); //For demo purpose, we are only retrieving the formattedEndDate for the first invoice
                 //TODO Using null for parameters like catalogBundlePath,bundle, defaultBundle, etc. Update this to use correct values if possible or verify that using null values has no adverse effect
