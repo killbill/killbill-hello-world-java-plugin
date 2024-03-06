@@ -37,6 +37,8 @@ import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
 import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
+import org.killbill.billing.invoice.plugin.api.InvoiceFormatterFactory;
 
 public class HelloWorldActivator extends KillbillActivatorBase {
 
@@ -50,6 +52,8 @@ public class HelloWorldActivator extends KillbillActivatorBase {
     private OSGIKillbillEventDispatcher.OSGIKillbillEventHandler killbillEventHandler;
     private MetricsGeneratorExample metricsGenerator;
 
+    private ServiceTracker<InvoiceFormatterFactory, InvoiceFormatterFactory> invoiceFormatterTracker;
+
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
@@ -62,8 +66,13 @@ public class HelloWorldActivator extends KillbillActivatorBase {
                 .createConfigurable(configProperties.getProperties());
         helloWorldConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
+        // create a service tracker for a custom InvoiceFormatter service
+        invoiceFormatterTracker = new ServiceTracker<>(context, InvoiceFormatterFactory.class, null);
+        invoiceFormatterTracker.open();
+
+
         // Register an event listener (optional)
-        killbillEventHandler = new HelloWorldListener(killbillAPI);
+        killbillEventHandler = new HelloWorldListener(killbillAPI, invoiceFormatterTracker);
 
         // As an example, this plugin registers a PaymentPluginApi (this could be
         // changed to any other plugin api)
