@@ -25,6 +25,7 @@ import java.util.Properties;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.killbill.billing.entitlement.plugin.api.EntitlementPluginApi;
 import org.killbill.billing.invoice.plugin.api.InvoicePluginApi;
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
@@ -91,6 +92,10 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final InvoicePluginApi invoicePluginApi = new HelloWorldInvoicePluginApi(killbillAPI, configProperties, null);
         registerInvoicePluginApi(context, invoicePluginApi);
 
+        final EntitlementPluginApi entitlementPluginApi = new HelloWorldEntitlementPluginApi(killbillAPI);
+        registerEntitlementPluginApi(context, entitlementPluginApi);
+
+
         // Register a servlet (optional)
         final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME, killbillAPI, dataSource, super.clock,
                                                          configProperties).withRouteClass(HelloWorldServlet.class)
@@ -138,5 +143,11 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, Healthcheck.class, healthcheck, props);
+    }
+
+    private void registerEntitlementPluginApi(final BundleContext context, final EntitlementPluginApi api) {
+        final Hashtable<String, String> props = new Hashtable<String, String>();
+        props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        registrar.registerService(context, EntitlementPluginApi.class, api, props);
     }
 }
