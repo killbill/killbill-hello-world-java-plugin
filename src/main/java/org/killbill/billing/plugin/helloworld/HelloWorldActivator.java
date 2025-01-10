@@ -19,12 +19,14 @@
 
 package org.killbill.billing.plugin.helloworld;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Properties;
-
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
-
+import javax.xml.namespace.QName;
+import org.killbill.billing.invoice.plugin.api.InvoiceFormatterFactory;
 import org.killbill.billing.invoice.plugin.api.InvoicePluginApi;
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
@@ -38,7 +40,16 @@ import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
-import org.killbill.billing.invoice.plugin.api.InvoiceFormatterFactory;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.SOAPPart;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.soap.SOAPBinding;
 
 public class HelloWorldActivator extends KillbillActivatorBase {
 
@@ -99,6 +110,37 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         registerServlet(context, httpServlet);
 
         registerHandlers();
+
+        final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+        try {
+            soap();
+        } finally {
+            Thread.currentThread().setContextClassLoader(contextClassLoader);
+        }
+    }
+
+    private void soap() throws SOAPException, IOException {
+        String endpointAddress = "http://www.dneonline.com/calculator.asmx";
+        MessageFactory factory = MessageFactory.newInstance();
+        SOAPMessage request = factory.createMessage();
+        SOAPPart soapPart = request.getSOAPPart();
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        SOAPBody body = envelope.getBody();
+        SOAPElement operation = body.addChildElement("Add", "", "http://tempuri.org/");
+        operation.addChildElement("intA").addTextNode("5");
+        operation.addChildElement("intB").addTextNode("7");
+        request.saveChanges();
+        QName serviceName = new QName("http://tempuri.org/", "Calculator");
+        QName portName    = new QName("http://tempuri.org/", "CalculatorSoap");
+        Service service = Service.create(serviceName);
+        service.addPort(portName, SOAPBinding.SOAP11HTTP_BINDING, endpointAddress);
+        Dispatch<SOAPMessage> dispatch = service.createDispatch(portName, SOAPMessage.class, Service.Mode.MESSAGE);
+        System.out.println("Sending 'Add' request to the public Calculator service...");
+        SOAPMessage response = dispatch.invoke(request);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        response.writeTo(out);
+        System.out.println("\nSOAP Response:\n" + new String(out.toByteArray()));
     }
 
     @Override
