@@ -22,6 +22,7 @@ package org.killbill.billing.plugin.helloworld;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Properties;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
@@ -136,6 +137,9 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         Service service = Service.create(serviceName);
         service.addPort(portName, SOAPBinding.SOAP11HTTP_BINDING, endpointAddress);
         Dispatch<SOAPMessage> dispatch = service.createDispatch(portName, SOAPMessage.class, Service.Mode.MESSAGE);
+        Map<String, Object> rc = dispatch.getRequestContext();
+        rc.put(jakarta.xml.ws.BindingProvider.SOAPACTION_USE_PROPERTY, true);
+        rc.put(jakarta.xml.ws.BindingProvider.SOAPACTION_URI_PROPERTY, "\"http://tempuri.org/Add\"");
         System.out.println("Sending 'Add' request to the public Calculator service...");
         SOAPMessage response = dispatch.invoke(request);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
