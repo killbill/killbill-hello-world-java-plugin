@@ -25,6 +25,7 @@ import java.util.Properties;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.killbill.billing.invoice.plugin.api.InvoiceFormatterFactory;
 import org.killbill.billing.invoice.plugin.api.InvoicePluginApi;
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
@@ -36,9 +37,12 @@ import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHand
 import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
+import org.killbill.commons.health.api.HealthCheckRegistry;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
-import org.killbill.billing.invoice.plugin.api.InvoiceFormatterFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HelloWorldActivator extends KillbillActivatorBase {
 
@@ -48,16 +52,26 @@ public class HelloWorldActivator extends KillbillActivatorBase {
     //
     public static final String PLUGIN_NAME = "hello-world-plugin";
 
+    private static final Logger logger = LoggerFactory.getLogger(HelloWorldActivator.class);
+
     private HelloWorldConfigurationHandler helloWorldConfigurationHandler;
     private OSGIKillbillEventDispatcher.OSGIKillbillEventHandler killbillEventHandler;
     private MetricsGeneratorExample metricsGenerator;
 
     private ServiceTracker<InvoiceFormatterFactory, InvoiceFormatterFactory> invoiceFormatterTracker;
 
+    private HealthCheckRegistry healthCheckRegistry;
+
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
-
+        final ServiceReference<HealthCheckRegistry> reference = context.getServiceReference(HealthCheckRegistry.class);
+        if (reference != null) {
+            final HealthCheckRegistry healthCheckRegistry = context.getService(reference);
+            if (healthCheckRegistry != null) {
+                this.healthCheckRegistry = healthCheckRegistry;
+            }
+        }
         final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
         // Register an event listener for plugin configuration (optional)
@@ -72,7 +86,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
 
         // Register an event listener (optional)
-        killbillEventHandler = new HelloWorldListener(killbillAPI, invoiceFormatterTracker, configProperties.getProperties());
+        killbillEventHandler = new HelloWorldListener(killbillAPI, invoiceFormatterTracker, healthCheckRegistry, configProperties.getProperties());
 
         // As an example, this plugin registers a PaymentPluginApi (this could be
         // changed to any other plugin api)
@@ -99,6 +113,7 @@ public class HelloWorldActivator extends KillbillActivatorBase {
         registerServlet(context, httpServlet);
 
         registerHandlers();
+        //        HealthCheck aviateHealthCheck = hea
     }
 
     @Override

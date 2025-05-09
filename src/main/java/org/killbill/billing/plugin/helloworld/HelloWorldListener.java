@@ -22,8 +22,8 @@ package org.killbill.billing.plugin.helloworld;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 
-import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.invoice.api.Invoice;
@@ -36,6 +36,8 @@ import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.plugin.api.PluginTenantContext;
 import org.killbill.billing.util.callcontext.TenantContext;
+import org.killbill.commons.health.api.HealthCheckRegistry;
+import org.killbill.commons.health.api.Result;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +52,12 @@ public class HelloWorldListener implements OSGIKillbillEventDispatcher.OSGIKillb
 
     private final Properties configProperties;
 
-    public HelloWorldListener(final OSGIKillbillAPI killbillAPI, final ServiceTracker<InvoiceFormatterFactory, InvoiceFormatterFactory> invoiceFormatterTracker, Properties configProperties) {
+    private final HealthCheckRegistry healthCheckRegistry;
+
+    public HelloWorldListener(final OSGIKillbillAPI killbillAPI, final ServiceTracker<InvoiceFormatterFactory, InvoiceFormatterFactory> invoiceFormatterTracker, final HealthCheckRegistry healthCheckRegistry, final Properties configProperties) {
         this.osgiKillbillAPI = killbillAPI;
         this.invoiceFormatterTracker = invoiceFormatterTracker;
+        this.healthCheckRegistry = healthCheckRegistry;
         this.configProperties = configProperties;
     }
 
@@ -66,6 +71,7 @@ public class HelloWorldListener implements OSGIKillbillEventDispatcher.OSGIKillb
                     killbillEvent.getObjectType());
 
         final TenantContext context = new PluginTenantContext(killbillEvent.getAccountId(), killbillEvent.getTenantId());
+        //        HealthCheck aviateHealthCheck = hea
         switch (killbillEvent.getEventType()) {
             //
             // Handle ACCOUNT_CREATION and ACCOUNT_CHANGE only for demo purpose and just print the account
@@ -78,6 +84,14 @@ public class HelloWorldListener implements OSGIKillbillEventDispatcher.OSGIKillb
                 } catch (final AccountApiException e) {
                     logger.warn("Unable to find account", e);
                 }
+                final Set<String> names = healthCheckRegistry.getNames();
+                logger.info("names {}", names);
+                Result result = healthCheckRegistry.runHealthCheck("org.killbill.billing.server.healthchecks.KillbillHealthcheck");
+                logger.info("KB healthcheck result: {}", result.isHealthy());
+                result = healthCheckRegistry.runHealthCheck("org.killbill.billing.server.healthchecks.KillbillPluginsHealthcheck");
+                logger.info("Plugins healthcheck result: {}", result.isHealthy());
+                result = healthCheckRegistry.runHealthCheck("com.killbill.billing.plugin.aviate.AviateHealthCheck"); //This line fails
+                logger.info("Aviate healthcheck result: {}", result.isHealthy());
                 break;
             case INVOICE_CREATION:
 
