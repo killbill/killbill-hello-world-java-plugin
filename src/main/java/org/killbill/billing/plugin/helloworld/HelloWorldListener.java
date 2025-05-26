@@ -21,11 +21,17 @@ package org.killbill.billing.plugin.helloworld;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
+import org.killbill.billing.entitlement.api.Subscription;
+import org.killbill.billing.entitlement.api.SubscriptionApiException;
+import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.formatters.InvoiceFormatter;
@@ -90,9 +96,21 @@ public class HelloWorldListener implements OSGIKillbillEventDispatcher.OSGIKillb
                 logger.info("KB healthcheck result: {}", result.isHealthy());
                 result = healthCheckRegistry.runHealthCheck("org.killbill.billing.server.healthchecks.KillbillPluginsHealthcheck");
                 logger.info("Plugins healthcheck result: {}", result.isHealthy());
-                result = healthCheckRegistry.runHealthCheck("com.killbill.billing.plugin.aviate.AviateHealthCheck"); //This line fails
-                logger.info("Aviate healthcheck result: {}", result.isHealthy());
+                Map<String, Object> pluginHealthDetails = result.getDetails();
+                for(Entry<String, Object> entry: pluginHealthDetails.entrySet()) {
+                    String pluginKey = entry.getKey();
+                    Map<Object, Object> pluginDetails = (Map)entry.getValue();
+                    logger.info("Plugin {}, Details {}", entry.getKey(), entry.getValue());
+                }
                 break;
+            case SUBSCRIPTION_CREATION:
+                try {
+                    Subscription subscription = osgiKillbillAPI.getSubscriptionApi().getSubscriptionForEntitlementId(killbillEvent.getObjectId(), true, context);
+                    List<SubscriptionEvent> events = subscription.getSubscriptionEvents();
+                    logger.info("events:"+events);
+                } catch (SubscriptionApiException e) {
+                    throw new RuntimeException(e);
+                }
             case INVOICE_CREATION:
 
                 final Account account;
