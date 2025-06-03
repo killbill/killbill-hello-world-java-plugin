@@ -60,18 +60,10 @@ public class HelloWorldActivator extends KillbillActivatorBase {
 
     private ServiceTracker<InvoiceFormatterFactory, InvoiceFormatterFactory> invoiceFormatterTracker;
 
-    private HealthCheckRegistry healthCheckRegistry;
 
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
-        final ServiceReference<HealthCheckRegistry> reference = context.getServiceReference(HealthCheckRegistry.class);
-        if (reference != null) {
-            final HealthCheckRegistry healthCheckRegistry = context.getService(reference);
-            if (healthCheckRegistry != null) {
-                this.healthCheckRegistry = healthCheckRegistry;
-            }
-        }
         final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
         // Register an event listener for plugin configuration (optional)
