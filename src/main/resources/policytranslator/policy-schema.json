@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PolicyJson",
+  "description": "Canonical billing policy JSON schema (POC)",
+  "type": "object",
+  "required": ["dsl_version", "policy_id", "description", "applies_to", "eligibility", "trigger", "condition", "benefit", "audit", "metadata"],
+  "properties": {
+    "dsl_version": {
+      "type": "string",
+      "const": "billing-intent/0.1"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.]{2,80}$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "applies_to": {
+      "type": "object",
+      "required": ["object"],
+      "properties": {
+        "object": {
+          "type": "string",
+          "enum": ["purchase"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "eligibility": {
+      "type": "object",
+      "required": ["customer_segment"],
+      "properties": {
+        "customer_segment": {
+          "type": "string",
+          "enum": ["returning", "new", "all"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "trigger": {
+      "type": "object",
+      "required": ["event", "timing"],
+      "properties": {
+        "event": {
+          "type": "string",
+          "enum": ["purchase_priced"]
+        },
+        "timing": {
+          "type": "string",
+          "enum": ["before_invoice_finalized"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": ["kind", "n", "basis", "scope"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["every_nth_purchase"]
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 12
+        },
+        "basis": {
+          "type": "string",
+          "enum": ["successful_purchases"]
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["lifetime"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "benefit": {
+      "type": "object",
+      "required": ["kind", "value_percent", "target", "promo_code_required"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["percentage_discount"]
+        },
+        "value_percent": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 90
+        },
+        "target": {
+          "type": "string",
+          "enum": ["all_line_items"]
+        },
+        "promo_code_required": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit": {
+      "type": "object",
+      "required": ["reason_code", "label"],
+      "properties": {
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,50}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["created_by", "created_at", "source"],
+      "properties": {
+        "created_by": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

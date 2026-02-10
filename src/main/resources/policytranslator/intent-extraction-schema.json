@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IntentExtraction",
+  "description": "Stage A output: structured fields extracted from natural language billing rule",
+  "type": "object",
+  "required": ["customer_segment", "discount_percent", "cadence_every_nth_purchase", "promo_code_required", "trigger_event", "scope"],
+  "properties": {
+    "customer_segment": {
+      "type": "string",
+      "enum": ["returning", "new", "all", "unknown"]
+    },
+    "discount_percent": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "cadence_every_nth_purchase": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "promo_code_required": {
+      "type": "boolean"
+    },
+    "trigger_event": {
+      "type": "string",
+      "enum": ["purchase_priced", "unknown"]
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["lifetime", "unknown"]
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "missing_info_questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

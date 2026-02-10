@@ -1,0 +1,21 @@
+{
+  "events": ["purchase_priced"],
+  "timings": ["before_invoice_finalized"],
+  "customer_segments": ["all", "new", "returning"],
+  "applies_to_objects": ["purchase"],
+  "benefits": {
+    "percentage_discount": {
+      "min": 1,
+      "max": 90
+    }
+  },
+  "targets": ["all_line_items"],
+  "conditions": {
+    "every_nth_purchase": {
+      "n_min": 2,
+      "n_max": 12,
+      "basis": ["successful_purchases"],
+      "scope": ["lifetime"]
+    }
+  }
+}

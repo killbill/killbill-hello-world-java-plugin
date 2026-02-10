@@ -1,0 +1,41 @@
+[
+  {
+    "input": "Returning customers get 25% off every third purchase, no promo code.",
+    "output": {
+      "customer_segment": "returning",
+      "discount_percent": 25,
+      "cadence_every_nth_purchase": 3,
+      "promo_code_required": false,
+      "trigger_event": "purchase_priced",
+      "scope": "lifetime",
+      "notes": ["Interpreted 'every third purchase' as every 3rd successful purchase over lifetime."],
+      "missing_info_questions": []
+    }
+  },
+  {
+    "input": "10% off every 2nd purchase for all customers.",
+    "output": {
+      "customer_segment": "all",
+      "discount_percent": 10,
+      "cadence_every_nth_purchase": 2,
+      "promo_code_required": false,
+      "trigger_event": "purchase_priced",
+      "scope": "lifetime",
+      "notes": ["No promo code mentioned; defaulting to not required.", "Interpreted 'every 2nd purchase' as every 2nd successful purchase over lifetime."],
+      "missing_info_questions": []
+    }
+  },
+  {
+    "input": "New customers, 15 percent discount on every 5th order, requires promo code.",
+    "output": {
+      "customer_segment": "new",
+      "discount_percent": 15,
+      "cadence_every_nth_purchase": 5,
+      "promo_code_required": true,
+      "trigger_event": "purchase_priced",
+      "scope": "lifetime",
+      "notes": ["Interpreted 'order' as 'purchase'.", "Interpreted 'every 5th order' as every 5th successful purchase over lifetime."],
+      "missing_info_questions": []
+    }
+  }
+]

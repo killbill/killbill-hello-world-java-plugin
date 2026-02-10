@@ -1,0 +1,50 @@
+[
+  {
+    "input": {
+      "customer_segment": "returning",
+      "discount_percent": 25,
+      "cadence_every_nth_purchase": 3,
+      "promo_code_required": false,
+      "trigger_event": "purchase_priced",
+      "scope": "lifetime",
+      "notes": [],
+      "missing_info_questions": []
+    },
+    "output": {
+      "dsl_version": "billing-intent/0.1",
+      "policy_id": "returning.every_3rd_purchase_25pct",
+      "description": "25% off every 3rd purchase for returning customers without a promo code.",
+      "applies_to": { "object": "purchase" },
+      "eligibility": { "customer_segment": "returning" },
+      "trigger": { "event": "purchase_priced", "timing": "before_invoice_finalized" },
+      "condition": { "kind": "every_nth_purchase", "n": 3, "basis": "successful_purchases", "scope": "lifetime" },
+      "benefit": { "kind": "percentage_discount", "value_percent": 25, "target": "all_line_items", "promo_code_required": false },
+      "audit": { "reason_code": "LOYALTY_EVERY_3RD", "label": "Loyalty reward" },
+      "metadata": { "created_by": "system", "created_at": "2026-02-10T00:00:00Z", "source": "nl_translation_poc" }
+    }
+  },
+  {
+    "input": {
+      "customer_segment": "all",
+      "discount_percent": 10,
+      "cadence_every_nth_purchase": 2,
+      "promo_code_required": false,
+      "trigger_event": "purchase_priced",
+      "scope": "lifetime",
+      "notes": [],
+      "missing_info_questions": []
+    },
+    "output": {
+      "dsl_version": "billing-intent/0.1",
+      "policy_id": "all.every_2nd_purchase_10pct",
+      "description": "10% off every 2nd purchase for all customers without a promo code.",
+      "applies_to": { "object": "purchase" },
+      "eligibility": { "customer_segment": "all" },
+      "trigger": { "event": "purchase_priced", "timing": "before_invoice_finalized" },
+      "condition": { "kind": "every_nth_purchase", "n": 2, "basis": "successful_purchases", "scope": "lifetime" },
+      "benefit": { "kind": "percentage_discount", "value_percent": 10, "target": "all_line_items", "promo_code_required": false },
+      "audit": { "reason_code": "LOYALTY_EVERY_2ND", "label": "Loyalty reward" },
+      "metadata": { "created_by": "system", "created_at": "2026-02-10T00:00:00Z", "source": "nl_translation_poc" }
+    }
+  }
+]
