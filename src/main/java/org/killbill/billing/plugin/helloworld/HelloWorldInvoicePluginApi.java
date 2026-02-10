@@ -18,7 +18,9 @@
 package org.killbill.billing.plugin.helloworld;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
+import java.math.RoundingMode;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -39,8 +41,26 @@ import org.killbill.billing.plugin.api.invoice.PluginInvoiceItem;
 import org.killbill.billing.plugin.api.invoice.PluginInvoicePluginApi;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.clock.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIKillbillEventHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(HelloWorldInvoicePluginApi.class);
+
+    static final String LOYALTY_DISCOUNT_DESC = "Loyalty discount \u2013 25% off (every 3rd purchase)";
+    static final BigDecimal DISCOUNT_RATE = new BigDecimal("0.25");
+    static final int PURCHASE_CYCLE = 3;
+
+    /**
+     * Invoice item types that represent a customer charge (one-time or otherwise).
+     */
+    private static final Set<InvoiceItemType> CHARGEABLE_TYPES = EnumSet.of(
+            InvoiceItemType.FIXED,
+            InvoiceItemType.EXTERNAL_CHARGE,
+            InvoiceItemType.USAGE,
+            InvoiceItemType.RECURRING
+    );
 
     public HelloWorldInvoicePluginApi(final OSGIKillbillAPI killbillAPI, final OSGIConfigPropertiesService configProperties,
                                       final Clock clock) {
@@ -48,19 +68,19 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
     }
 
     /**
-     * Returns additional invoice items to be added to invoice
+     * Applies a 25% loyalty discount to every 3rd one-time purchase.
      * <p>
-     * This method produces two types of invoice items a. Tax Item on Invoice Item
-     * b. Adjustment Item on only the very first Historical Invoice Tax Item
-     * automatically ( just for Demo purpose )
+     * During invoice generation Kill Bill calls this method before the invoice is
+     * committed. The plugin counts past one-time-purchase invoices for the account
+     * and, when the current invoice is the 3rd (6th, 9th, …) purchase, returns
+     * negative {@code ITEM_ADJ} items equal to 25% of each charge line item.
      *
-     * @param newInvoice The invoice that is being created.
-     * @param dryRun     Whether it is dryRun or not
-     * @param properties Any user-specified plugin properties, coming straight out
-     *                   of the API request that has triggered this code to run.
-     * @param callCtx    The context in which this code is running.
-     * @return A new immutable list of new tax items, or adjustments on existing tax
-     * items.
+     * @param newInvoice     The invoice that is being created.
+     * @param dryRun         Whether it is a dry-run preview.
+     * @param properties     Any user-specified plugin properties.
+     * @param invoiceContext The context in which this code is running.
+     * @return Additional adjustment items representing the loyalty discount, or an
+     *         empty list when the discount does not apply.
      */
     @Override
     public AdditionalItemsResult getAdditionalInvoiceItems(final Invoice newInvoice, final boolean dryRun,
@@ -68,41 +88,120 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
 
         final UUID accountId = newInvoice.getAccountId();
         final Account account = getAccount(accountId, invoiceContext);
-        final Set<Invoice> allInvoices = getAllInvoicesOfAccount(account, newInvoice, invoiceContext);
         final List<InvoiceItem> additionalItems = new LinkedList<InvoiceItem>();
 
-        // Creating tax item for first Item of new Invoice
-        final List<InvoiceItem> newInvoiceItems = newInvoice.getInvoiceItems();
-        final InvoiceItem newInvoiceItem = newInvoiceItems.get(0);
-        BigDecimal charge = new BigDecimal("80");
-        final InvoiceItem taxItem = PluginInvoiceItem.createTaxItem(newInvoiceItem, newInvoiceItem.getInvoiceId(),
-                                                                    newInvoice.getInvoiceDate(), null, charge, "Tax Item");
-        additionalItems.add(taxItem);
+        // --- Idempotency guard: skip if discount items were already added --------
+        if (hasExistingLoyaltyDiscount(newInvoice)) {
+            logger.info("Loyalty discount already present on invoice {} for account {} – skipping",
+                        newInvoice.getId(), accountId);
+            return buildResult(additionalItems);
+        }
 
-        // Creating External Charge for first Item of new Invoice
-        final InvoiceItem externalItem = PluginInvoiceItem.create(newInvoiceItem, newInvoiceItem.getInvoiceId(),
-                                                                  newInvoice.getInvoiceDate(), null, charge, "External Item", InvoiceItemType.EXTERNAL_CHARGE);
-        additionalItems.add(externalItem);
-
-        // Adding adjustment invoice item to the first historical invoice, if it does not have the adjustment item
-        for (final Invoice invoice : allInvoices) {
-            if (!invoice.getId().equals(newInvoice.getId())) {
-                final List<InvoiceItem> invoiceItems = invoice.getInvoiceItems();
-                // Check for if any adjustment item exists for Historical Invoice
-                if (checkforAdjustmentItem(invoiceItems)) {
-                    break;
-                }
-                for (final InvoiceItem item : invoiceItems) {
-                    charge = new BigDecimal("-30");
-                    final InvoiceItem adjItem = PluginInvoiceItem.createAdjustmentItem(item, item.getInvoiceId(),
-                                                                                       newInvoice.getInvoiceDate(), newInvoice.getInvoiceDate(), charge, "Adjustment Item");
-                    additionalItems.add(adjItem);
-                    break;
-                }
-                break;
+        // --- Count past one-time-purchase invoices (excluding the current one) ---
+        final Collection<Invoice> pastInvoices = getInvoicesByAccountId(account.getId(), invoiceContext);
+        int pastPurchaseCount = 0;
+        for (final Invoice invoice : pastInvoices) {
+            if (!invoice.getId().equals(newInvoice.getId()) && isOneTimePurchaseInvoice(invoice)) {
+                pastPurchaseCount++;
             }
         }
-        
+
+        // The current invoice is purchase number (pastPurchaseCount + 1)
+        // but only if this invoice itself qualifies as a one-time purchase.
+        if (!isOneTimePurchaseInvoice(newInvoice)) {
+            logger.debug("Invoice {} for account {} is not a one-time purchase – no loyalty discount",
+                         newInvoice.getId(), accountId);
+            return buildResult(additionalItems);
+        }
+
+        final int currentPurchaseNumber = pastPurchaseCount + 1;
+        logger.info("Account {}: this is one-time purchase #{}", accountId, currentPurchaseNumber);
+
+        if (currentPurchaseNumber % PURCHASE_CYCLE != 0) {
+            logger.info("Account {}: purchase #{} is not a multiple of {} – no discount",
+                        accountId, currentPurchaseNumber, PURCHASE_CYCLE);
+            return buildResult(additionalItems);
+        }
+
+        // --- Apply 25% discount to every chargeable item on this invoice ---------
+        BigDecimal totalDiscount = BigDecimal.ZERO;
+        for (final InvoiceItem item : newInvoice.getInvoiceItems()) {
+            if (isChargeableItem(item) && item.getAmount() != null && item.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+                final BigDecimal discountAmount = item.getAmount()
+                        .multiply(DISCOUNT_RATE)
+                        .setScale(2, RoundingMode.HALF_UP)
+                        .negate();
+
+                final InvoiceItem adjItem = PluginInvoiceItem.createAdjustmentItem(
+                        item,
+                        item.getInvoiceId(),
+                        newInvoice.getInvoiceDate(),
+                        newInvoice.getInvoiceDate(),
+                        discountAmount,
+                        LOYALTY_DISCOUNT_DESC);
+                additionalItems.add(adjItem);
+                totalDiscount = totalDiscount.add(discountAmount);
+            }
+        }
+
+        if (dryRun) {
+            logger.info("Account {}: dry-run – loyalty discount of {} would be applied on purchase #{}",
+                        accountId, totalDiscount, currentPurchaseNumber);
+        } else {
+            logger.info("Account {}: applying loyalty discount of {} on purchase #{}",
+                        accountId, totalDiscount, currentPurchaseNumber);
+        }
+
+        return buildResult(additionalItems);
+    }
+
+    // -------------------------------------------------------------------------
+    //  Helper methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Determines whether an invoice represents a one-time purchase.
+     * An invoice qualifies when it contains at least one chargeable item and
+     * does <b>not</b> contain any {@link InvoiceItemType#RECURRING} items.
+     */
+    boolean isOneTimePurchaseInvoice(final Invoice invoice) {
+        boolean hasCharge = false;
+        for (final InvoiceItem item : invoice.getInvoiceItems()) {
+            if (item.getInvoiceItemType() == InvoiceItemType.RECURRING) {
+                return false;
+            }
+            if (isChargeableItem(item)) {
+                hasCharge = true;
+            }
+        }
+        return hasCharge;
+    }
+
+    /**
+     * Returns {@code true} when the item type represents a customer charge.
+     */
+    private boolean isChargeableItem(final InvoiceItem item) {
+        return CHARGEABLE_TYPES.contains(item.getInvoiceItemType());
+    }
+
+    /**
+     * Idempotency check: returns {@code true} if the invoice already contains
+     * an adjustment item with the loyalty-discount description.
+     */
+    private boolean hasExistingLoyaltyDiscount(final Invoice invoice) {
+        for (final InvoiceItem item : invoice.getInvoiceItems()) {
+            if (InvoiceItemType.ITEM_ADJ.equals(item.getInvoiceItemType())
+                    && LOYALTY_DISCOUNT_DESC.equals(item.getDescription())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Wraps the list of additional items into an {@link AdditionalItemsResult}.
+     */
+    private AdditionalItemsResult buildResult(final List<InvoiceItem> additionalItems) {
         return new AdditionalItemsResult() {
             @Override
             public List<InvoiceItem> getAdditionalItems() {
@@ -113,48 +212,10 @@ class HelloWorldInvoicePluginApi extends PluginInvoicePluginApi implements OSGIK
             public Iterable<PluginProperty> getAdjustedPluginProperties() {
                 return null;
             }
-        };        
-    }
-
-    /**
-     * This method returns all invoices of account
-     *
-     * @param account    The account to consider.
-     * @param newInvoice New Invoice Item to be added to existing invoices of the
-     *                   account
-     * @param tenantCtx
-     * @return All invoices of account
-     */
-    private Set<Invoice> getAllInvoicesOfAccount(final Account account, final Invoice newInvoice, final TenantContext tenantCtx) {
-        final Set<Invoice> invoices = new HashSet<Invoice>();
-        invoices.addAll(getInvoicesByAccountId(account.getId(), tenantCtx));
-        invoices.add(newInvoice);
-        return invoices;
-    }
-
-    /**
-     * Check whether adjustment item is already present in invoice Item of Invoice
-     *
-     * @param invoiceItems
-     * @return
-     */
-    private boolean checkforAdjustmentItem(final List<InvoiceItem> invoiceItems) {
-        boolean adjustmentItemPresent = false;
-        for (final InvoiceItem invoiceItem : invoiceItems) {
-            if (invoiceItem.getInvoiceItemType().equals(InvoiceItemType.ITEM_ADJ)) {
-                adjustmentItemPresent = true;
-                break;
-            }
-        }
-        return adjustmentItemPresent;
-    }
-
-    protected boolean isTaxItem(final InvoiceItem invoiceItem) {
-        return InvoiceItemType.TAX.equals(invoiceItem.getInvoiceItemType());
+        };
     }
 
     @Override
     public void handleKillbillEvent(final ExtBusEvent killbillEvent) {
     }
-
 }
